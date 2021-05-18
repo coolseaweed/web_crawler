@@ -11,6 +11,55 @@ logging.basicConfig(
     )
 logger = logging.getLogger(__name__)
 
+addr = {}
+pattern01 = re.compile(r'([\S]+)\／([\S]+)（([\S]+)\／([\S]+)）')
+pattern02 = re.compile(r'([一-龯ぁ-ん０-９々モエヱケタクロミノツハ\／\（\）]+\／[一-龯ぁ-ん０-９々モエヱケタクロミノツハ\／\（\）]+)\（([ァ-ン０-９\／\（\）]+\／[ァ-ン０-９\（\）]+)）')
+pattern03 = re.compile(r'([\S]+)（([\S]+)）（([\S]+)（([\S]+)））')
+pattern04 = re.compile(r'([\S]+)（([\S]+)）')
+
+def verify_text(line):
+
+    output={}
+    for i, word in enumerate(line.strip().split()):
+
+        output[f'field{i}'] = set()
+        if pattern01.fullmatch(word):
+            if pattern02.fullmatch(word):
+                group1 = pattern02.sub(r'\1',word)
+                group2 = pattern02.sub(r'\2',word)
+
+                # print(f"input_raw:{line}")
+                # print(f"processing_line:{word}")
+                # print(f":{group1} | {group2}")
+                # print('--------------------------------')
+                for item in zip(group1.split('／'),group2.split('／')):
+                    kanji, kana = item
+                    if pattern04.fullmatch(kanji):
+                        kanji = pattern04.sub(r'\1',kanji)
+                    if pattern04.fullmatch(kana):
+                        kana = pattern04.sub(r'\1',kana)
+                    output[f'field{i}'].add(f"{kanji}（{kana}）")
+            else:
+                logger.info(f"edge case detacted: {word}")
+        else:
+            if pattern03.fullmatch(word):
+                group1 = pattern03.sub(r'\1',word)
+                group2 = pattern03.sub(r'\3',word)
+                # print(f"processing_line:{word}")
+                # print(f":{group1} | {group2}")
+                # print('--------------------------------')
+                word=f"{group1}（{group2}）"
+            output[f'field{i}'].add(word)
+    
+    output_text=''
+    for field0 in output['field0']:
+        for field1 in output['field1']:
+            for field2 in output['field2']:
+                output_text += f"{field0} {field1} {field2}\n"
+
+    return output_text
+
+
 
 
 def getTextFromJpnPost(url, out_fname):
@@ -74,6 +123,29 @@ def getTextFromJpnPost(url, out_fname):
 if __name__ == '__main__':
 
     url='https://japan-postcode.810popo.net/ja/'
-    raw_file='./addressRawCorpus'
-    out_file='./addressCorpus'
+
+    raw_dir = os.path.join("raw_data","address")
+    export_dir = os.path.join("export","address")
+    print(raw_dir)
+    os.makedirs(raw_dir,exist_ok=True)
+    os.makedirs(export_dir,exist_ok=True)
+
+    raw_file = os.path.join(raw_dir,"corpus_address.txt")
+    out_file = os.path.join(export_dir,"corpus_address.txt")
+
+    #getTextFromJpnPost(url, raw_file)
+
+    with open (raw_file,'r') as f_in, open(out_file,'w') as f_out:
+        cnt = 0
+        for line in f_in:
+            line = verify_text(line)
+
+            f_out.write(line)
+            cnt +=1
+
+            #if cnt > 500: break
+            if cnt % 1000 == 0:
+                logger.info(f'progressed line num: {cnt}')
+                
+    logger.info('done!')
 
