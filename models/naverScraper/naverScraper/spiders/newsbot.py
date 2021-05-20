@@ -6,7 +6,10 @@ class NewsbotSpider(scrapy.Spider):
 	start_urls = ['http://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001']
 
 	def parse(self, response):
+		print("procesing:"+response.url)
+
 		titles = response.xpath('//*[@id="main_content"]/div[2]/ul/li/dl/dt[2]/a/text()').extract()
+		print(titles)
 		authors = response.css('.writing::text').extract()
 		previews = response.css('.lede::text').extract()
 
