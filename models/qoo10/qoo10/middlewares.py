@@ -2,12 +2,23 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
 
 from scrapy import signals
+from scrapy.http import HtmlResponse
+from scrapy.utils.python import to_bytes
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+#from selenium.webdriver.chrome.option.desired_capabilities import DesiredCapabilities
 
+
+CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
+WINDOW_SIZE = '1920,1080'
+MAX_SCROLL_PAGE_NUM = 10
+SCROLL_PAUSE_TIME = 1 
 
 class Qoo10SpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -16,7 +27,9 @@ class Qoo10SpiderMiddleware:
 
     @classmethod
     def from_crawler(cls, crawler):
+        
         # This method is used by Scrapy to create your spiders.
+        print("This is Qoo10SpiderMiddleware from crawler ===============")
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
@@ -64,11 +77,65 @@ class Qoo10DownloaderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
+        print("This is Qoo10SpiderMiddleware from crawler +++++++++++++++")
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
+        crawler.signals.connect(s.spider_closed, signal=signals.spider_closed)
         return s
 
+
+    def spider_opened(self, spider):
+
+        spider.logger.info('Spider opened: %s' % spider.name)
+
+        chrome_options = Options()
+        chrome_options.add_argument( "--headless" )
+        chrome_options.add_argument( "--no-sandbox" )
+        chrome_options.add_argument( "--disable-gpu" )
+        chrome_options.add_argument( f"--window-size={ WINDOW_SIZE }" )
+        
+        driver = webdriver.Chrome( executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options )
+        self.driver = driver   
+             
+
+    def spider_closed(self, spider):
+        self.driver.close()
+
+
     def process_request(self, request, spider):
+
+        spider.logger.info(f'request_url is: {request.url}')
+ 
+        if ('cat' in request.url) or ('Category' in request.url):
+
+            self.driver.get(request.url)
+
+            #print(f'[Middleware] url:{request.url} scrolling down..')
+           
+            # Get scroll height
+            last_height = self.driver.execute_script("return document.body. scrollHeight")
+
+            for _ in range(MAX_SCROLL_PAGE_NUM):
+                # Scroll down to bottom
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                # Wait to load page
+                time.sleep(SCROLL_PAUSE_TIME)
+
+                # Calculate new scroll height and compare with last scroll height
+                new_height = self.driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height  
+
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+            body = to_bytes(text=self.driver.page_source)
+            return HtmlResponse(url=request.url, body=body, encoding='utf-8', request=request)
+
+        else:
+            return None
+        #print(driver.page_source)
+        #print('[CHECK]',request.url)
         # Called for each request that goes through the downloader
         # middleware.
 
@@ -78,7 +145,9 @@ class Qoo10DownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+
+        #return None
+
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
@@ -98,6 +167,3 @@ class Qoo10DownloaderMiddleware:
         # - return a Response object: stops process_exception() chain
         # - return a Request object: stops process_exception() chain
         pass
-
-    def spider_opened(self, spider):
-        spider.logger.info('Spider opened: %s' % spider.name)
