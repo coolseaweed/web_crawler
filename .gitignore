@@ -1,3 +1,5 @@
 export/
 raw_data/
 __pycache__
+*.log
+*.csv

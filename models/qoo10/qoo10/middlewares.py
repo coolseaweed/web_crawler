@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 
 CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
 WINDOW_SIZE = '1920,1080'
-MAX_SCROLL_PAGE_NUM = 10
+MAX_SCROLL_PAGE_NUM = 100
 SCROLL_PAUSE_TIME = 1 
 
 class Qoo10SpiderMiddleware:
@@ -27,7 +27,7 @@ class Qoo10SpiderMiddleware:
 
     @classmethod
     def from_crawler(cls, crawler):
-        
+
         # This method is used by Scrapy to create your spiders.
         print("This is Qoo10SpiderMiddleware from crawler ===============")
         s = cls()
@@ -111,7 +111,9 @@ class Qoo10DownloaderMiddleware:
             self.driver.get(request.url)
 
             #print(f'[Middleware] url:{request.url} scrolling down..')
-           
+            # button = self.driver.find_elements_by_xpath('//input[]')
+            # button.click()
+
             # Get scroll height
             last_height = self.driver.execute_script("return document.body. scrollHeight")
 
@@ -134,19 +136,7 @@ class Qoo10DownloaderMiddleware:
 
         else:
             return None
-        #print(driver.page_source)
-        #print('[CHECK]',request.url)
-        # Called for each request that goes through the downloader
-        # middleware.
 
-        # Must either:
-        # - return None: continue processing this request
-        # - or return a Response object
-        # - or return a Request object
-        # - or raise IgnoreRequest: process_exception() methods of
-        #   installed downloader middleware will be called
-
-        #return None
 
 
     def process_response(self, request, response, spider):

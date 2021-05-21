@@ -41,12 +41,12 @@ class Qoo10scraperSpider(scrapy.Spider):
 
             # print(f'processing main url is: {url}')
             # print('-------------')
-            #if i> 100: break
+            if i> 1: break
 
             if i % 50 == 0:
 
                 print(f'gethering processing: [{i}/{len(response.xpath(self.getAllCategoriesXpath))}]')
-                
+
             yield scrapy.Request(url=url, callback=self.parse_category, dont_filter=True)
            
     def parse_category(self,response):
@@ -59,7 +59,7 @@ class Qoo10scraperSpider(scrapy.Spider):
             url = response.urljoin(href.extract())
 
             # print(f'processing sub url is: {url}')
-            # if i> 10: break
+            if i> 10: break
 
             if url not in visited:
                 visited.add(url)
