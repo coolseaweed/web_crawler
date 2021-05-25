@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 
 CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
 WINDOW_SIZE = '1920,1080'
-MAX_SCROLL_PAGE_NUM = 100
+MAX_SCROLL_PAGE_NUM = 1000
 SCROLL_PAUSE_TIME = 1 
 
 class Qoo10SpiderMiddleware:
@@ -116,10 +116,12 @@ class Qoo10DownloaderMiddleware:
 
             # Get scroll height
             last_height = self.driver.execute_script("return document.body. scrollHeight")
-
             for _ in range(MAX_SCROLL_PAGE_NUM):
+
                 # Scroll down to bottom
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+
                 # Wait to load page
                 time.sleep(SCROLL_PAUSE_TIME)
 
