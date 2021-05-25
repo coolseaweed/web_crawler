@@ -17,7 +17,7 @@ from selenium.webdriver.chrome.options import Options
 
 CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
 WINDOW_SIZE = '1920,1080'
-MAX_SCROLL_PAGE_NUM = 1000
+MAX_SCROLL_PAGE_NUM = 1
 SCROLL_PAUSE_TIME = 1 
 
 class Qoo10SpiderMiddleware:
