@@ -1,5 +1,0 @@
-Usage
-=====
-  scrapy crawl [options] <spider>
-
-crawl: error: no such option: --nolog#

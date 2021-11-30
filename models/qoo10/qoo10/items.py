@@ -14,10 +14,5 @@ class Qoo10Item(scrapy.Item):
     QnA = scrapy.Field()
     Review = scrapy.Field()
     URL = scrapy.Field()
-    # Price       = scrapy.Field()
-    # Features    = scrapy.Field()
-    # Description = scrapy.Field()
-    # SpecsName   = scrapy.Field()
-    # Specs       = scrapy.Field()
 
 
